@@ -11,7 +11,7 @@ output "private_subnets" {
 }
 
 output "bronze_bucket_name" {
-  value = module.bronze_bucket.bronze_bucket_name
+  value = module.bronze_bucket.bucket_name
 }
 
 output "silver_bucket_name" {

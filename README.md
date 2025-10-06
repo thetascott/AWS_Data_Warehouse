@@ -1,6 +1,6 @@
-# SQL Data Warehouse Project
+# AWS Data Warehouse Project (In-Progress)
 
-Welcome to the **SQL Data Warehouse Project** repository! 
+Welcome to the **AWS Data Warehouse Project** repository! 
 This project demonstrates a comprehensive data warehousing solution.  Designed as a portfolio project, it highlights industry best practices in data engineering and analytics.
 
 ---
@@ -8,9 +8,8 @@ This project demonstrates a comprehensive data warehousing solution.  Designed a
 ## Data Architecture
 
 The data architecture for this project follows Medallion Architecture **Bronze**, **Silver**, and **Gold** layers:
-![Data Architecture](docs/High%20Level%20Architecture.png)
 
-1. **Bronze Layer**: Stores raw data as-is from the source systems. Data is ingested from CSV Files into a PostgreSQL database.
+1. **Bronze Layer**: Stores raw data as-is from the source systems. Data is ingested from CSV Files into a S3 bucket.
 2. **Silver Layer**: This layer includes data cleansing, standardization, and normalization processes to prepare data for analysis.
 3. **Gold Layer**: Houses business-ready data modeled into a star schema required for reporting and analytics.
 
@@ -31,7 +30,7 @@ This project involves:
 ### Building the Data Warehouse (Data Engineering)
 
 #### Objective
-Develop a modern data warehouse using PostgreSQL to consolidate sales data, enabling analytical reporting and informed decision-making.
+Develop a modern data warehouse using AWS services to consolidate sales data, enabling analytical reporting and informed decision-making.
 
 #### Specifications
 - **Data Sources**: Import data from two source systems (ERP and CRM) provided as CSV files.
@@ -44,7 +43,7 @@ Develop a modern data warehouse using PostgreSQL to consolidate sales data, enab
 
 ## Repository Structure
 ```
-sql-data-warehouse/
+aws-data-warehouse/
 │
 ├── datasets/                           # Raw datasets used for the project (ERP and CRM data)
 │

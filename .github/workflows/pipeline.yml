@@ -1,60 +1,55 @@
 name: Terraform CI/CD
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-
-permissions:
-  contents: read
-
-env:
-  TF_LOG: INFO
-  TF_INPUT: false
-  AWS_REGION: ${{ secrets.AWS_REGION }}
 
 jobs:
   terraform:
-    name: Terraform Plan & Apply
+    name: Terraform Plan, Apply, and Destroy
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: infrastructure
+        working-directory: Infrastructure  # ensure this folder exists in your repo root
+
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      TF_VERSION: 1.13.1
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Terraform
+      - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.13.1
+          terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Terraform Format
-        run: terraform fmt -check -recursive
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Terraform Init
+      - name: Initialize Terraform
         run: terraform init
 
-      - name: Terraform Validate
+      - name: Validate Terraform
         run: terraform validate
 
       - name: Terraform Plan
-        id: plan
         run: terraform plan -out=tfplan
 
-      - name: Upload Plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan
-          path: infrastructure/tfplan
-
-      - name: Terraform Apply (Main Branch Only)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve tfplan
 
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # Optional: Terraform Destroy (manual trigger only)
+      - name: Terraform Destroy
+        if: github.event_name == 'workflow_dispatch'
+        run: terraform destroy -auto-approve

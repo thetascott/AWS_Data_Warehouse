@@ -49,6 +49,21 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve tfplan
 
+      # Extract the Bronze bucket name from Terraform outputs
+      - name: Get Bronze bucket name
+        id: get_bronze_bucket
+        run: |
+          BRONZE_BUCKET=$(terraform output -raw bronze_bucket_name)
+          echo "bronze_bucket_name=$BRONZE_BUCKET" >> $GITHUB_ENV
+          echo "Bronze bucket: $BRONZE_BUCKET"
+
+      # Upload CSV files to S3 Bronze layer
+      - name: Upload datasets to S3 Bronze layer
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Uploading CSV files to s3://${{ env.bronze_bucket_name }}/"
+          aws s3 cp ../Datasets s3://${{ env.bronze_bucket_name }}/ --recursive --exclude "*" --include "*.csv"
+
       # Optional: Terraform Destroy (manual trigger only)
       - name: Terraform Destroy
         if: github.event_name == 'workflow_dispatch'

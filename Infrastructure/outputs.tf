@@ -9,3 +9,11 @@ output "public_subnets" {
 output "private_subnets" {
   value = module.vpc.private_subnets
 }
+
+output "bronze_bucket_name" {
+  value = module.bronze_bucket.bronze_bucket_name
+}
+
+output "silver_bucket_name" {
+  value = module.silver_bucket.bucket_name
+}

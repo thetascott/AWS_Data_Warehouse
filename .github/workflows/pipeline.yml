@@ -79,10 +79,10 @@ jobs:
 
       - name: Install pip dependencies
         run: |
-          pip install -r ./Scripts/requirements.txt
+          pip install -r ../Scripts/requirements.txt
 
       - name: Run script
-        run: python ./Scripts/load_bronze_catalog.py
+        run: python ../Scripts/load_bronze_catalog.py
 
       # Terraform Destroy (manual trigger only)
       - name: Terraform Destroy

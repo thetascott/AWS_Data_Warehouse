@@ -9,7 +9,7 @@ from datetime import datetime
 # -------------------------
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-2")
 BRONZE_BUCKET = os.environ.get("BRONZE_BUCKET", "your-bronze-bucket")
-GLUE_DATABASE = os.environ.get("GLUE_DATABASE", "srs_bronze_db")
+GLUE_DATABASE = os.environ.get("BRONZE_GLUE_DATABASE", "srs_bronze_db")
 FOLDERS = ["crm", "erp"]  # Can be extended
 
 # -------------------------

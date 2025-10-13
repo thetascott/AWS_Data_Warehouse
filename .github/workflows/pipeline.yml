@@ -41,10 +41,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            Infrastructure/.terraform
-            Infrastructure/.terraform.lock.hcl
-            Infrastructure/terraform.tfstate
-            Infrastructure/terraform.tfstate.backup
+            .terraform
+            .terraform.lock.hcl
+            terraform.tfstate
+            terraform.tfstate.backup
           key: terraform-${{ github.ref }}
 
       - name: Initialize Terraform

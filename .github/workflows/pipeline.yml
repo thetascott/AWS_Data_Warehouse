@@ -75,7 +75,28 @@ jobs:
           echo "Uploading CSV files to s3://${{ env.bronze_bucket_name }}/"
           aws s3 cp ../Datasets s3://${{ env.bronze_bucket_name }}/ --recursive --exclude "*" --include "*.csv"
 
-      # Optional: Terraform Destroy (manual trigger only)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.7'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('Scripts/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install pip dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r Scripts/requirements.txt
+
+      - name: Run script
+        run: python Scripts/load_bronze_catalog.py
+
+      # Terraform Destroy (manual trigger only)
       - name: Terraform Destroy
         if: github.event_name == 'workflow_dispatch'
         run: terraform destroy -auto-approve

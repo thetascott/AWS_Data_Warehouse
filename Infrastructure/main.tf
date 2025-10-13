@@ -56,34 +56,4 @@ module "glue" {
       location_uri = "s3://${module.silver_bucket.bucket_name}/"
     }
   }
-
-  crawlers = {
-    bronze_crm = {
-      bucket = module.bronze_bucket.bucket_name
-      prefix = "crm"
-      db_ref = "bronze"
-      files = ["cust_info.csv", "prd_info.csv", "sales_details.csv"]
-    }
-
-    bronze_erp = {
-      bucket = module.bronze_bucket.bucket_name
-      prefix = "erp"
-      db_ref = "bronze"
-      files = ["CUST_AZ12.csv", "LOC_A101.csv", "PX_CAT_G1V2.csv"]
-    }
-
-    silver_crm = {
-      bucket = module.silver_bucket.bucket_name
-      prefix = "crm"
-      db_ref = "silver"
-      files = []
-    }
-
-    silver_erp = {
-      bucket = module.silver_bucket.bucket_name
-      prefix = "erp"
-      db_ref = "silver"
-      files = []
-    }
-  }
 }

@@ -17,13 +17,3 @@ variable "databases" {
     parameters  = optional(map(string))
   }))
 }
-
-variable "crawlers" {
-  description = "Crawler configs: bucket, prefix, db ref, and optional file list"
-  type = map(object({
-    bucket   = string
-    prefix   = string
-    db_ref   = string
-    files    = optional(list(string), []) # empty list = crawl entire folder
-  }))
-}

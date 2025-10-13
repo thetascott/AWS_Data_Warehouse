@@ -82,6 +82,8 @@ jobs:
           pip install -r ../Scripts/requirements.txt
 
       - name: Run script
+        env:
+          BRONZE_BUCKET: ${{ env.bronze_bucket_name }}
         run: python ../Scripts/Bronze/load_bronze_catalog.py
 
       # Terraform Destroy (manual trigger only)

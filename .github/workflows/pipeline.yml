@@ -36,17 +36,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Cache Terraform state and plugins
-      - name: Cache Terraform
-        uses: actions/cache@v4
-        with:
-          path: |
-            .terraform
-            .terraform.lock.hcl
-            terraform.tfstate
-            terraform.tfstate.backup
-          key: terraform-${{ github.ref }}
-
       - name: Initialize Terraform
         run: terraform init
 

@@ -22,14 +22,17 @@ jobs:
 
     steps:
       - name: Checkout repository
+        if: false
         uses: actions/checkout@v4
 
       - name: Set up Terraform
+        if: false
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Configure AWS credentials
+        if: false
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -37,24 +40,28 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Initialize Terraform
+        if: false
         run: terraform init
 
       - name: Validate Terraform
+        if: false
         run: terraform validate
 
       - name: Terraform Plan
+        if: false
         env:
           TF_VAR_redshift_admin_password: ${{ secrets.AWS_REDSHIFT_PASSWORD }}
         run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+        if: false
         env:
           TF_VAR_redshift_admin_password: ${{ secrets.AWS_REDSHIFT_PASSWORD }}
         run: terraform apply -auto-approve tfplan
 
       # Extract the bucket names from Terraform outputs
       - name: Get bucket names
+        if: false
         id: get_bucket_names
         run: |
           BRONZE_BUCKET=$(terraform output -raw bronze_bucket_name)
@@ -71,24 +78,26 @@ jobs:
 
       # Upload CSV files to S3 Bronze layer
       - name: Upload datasets to S3 Bronze layer
-        if: github.ref == 'refs/heads/main'
+        if: false
         run: |
           echo "Uploading CSV files to s3://${{ env.bronze_bucket_name }}/"
           aws s3 cp ../Datasets s3://${{ env.bronze_bucket_name }}/ --recursive --exclude "*" --include "*.csv"
 
       # Upload scripts files to S3 scripts bucket
       - name: Upload scripts to S3 scripts bucket
-        if: github.ref == 'refs/heads/main'
+        if: false
         run: |
           echo "Uploading script files to s3://${{ env.scripts_bucket_name }}/"
           aws s3 cp ../Scripts s3://${{ env.scripts_bucket_name }}/ --recursive 
 
       - name: Set up Python
+        if: false
         uses: actions/setup-python@v5
         with:
           python-version: '3.13.7'
 
       - name: Cache pip dependencies
+        if: false
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -97,15 +106,18 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Install pip dependencies
+        if: false
         run: |
           pip install -r ../Scripts/requirements.txt
 
       - name: Run script
+        if: false
         env:
           BRONZE_BUCKET: ${{ env.bronze_bucket_name }}
         run: python ../Scripts/Bronze/load_bronze_catalog.py
 
       - name: Create or Update Silver Layer ETL Glue Job
+        if: true
         run: |
           GLUE_ROLE_ARN=$(terraform output -raw glue_role_arn)
           echo "glue_role_arn=$GLUE_ROLE_ARN" >> $GITHUB_ENV
@@ -128,13 +140,16 @@ jobs:
                   \"ScriptLocation\": \"$SCRIPT_LOCATION\"
                 },
                 \"DefaultArguments\": {
-                  \"--BRONZE_BUCKET\": \"${{ env.bronze_bucket_name }}\",
-                  \"--SILVER_BUCKET\": \"${{ env.silver_bucket_name }}\",
+                  \"--BRONZE_BUCKET\": \"$bronze_bucket_name\",
+                  \"--SILVER_BUCKET\": \"$silver_bucket_name\",
                   \"--job-language\": \"python\",
-                  \"--enable-metrics\": \"true\"
+                  \"--enable-metrics\": \"true\",
+                  \"--enable-continuous-cloudwatch-log\": \"false\",
+                  \"--enable-job-insights\": \"false\"
                 },
                 \"GlueVersion\": \"4.0\",
-                \"MaxCapacity\": 2
+                \"NumberOfWorkers\": 1,
+                \"WorkerType\": \"G.1X\"
               }"
           else
             echo "Creating new Glue job: $JOB_NAME"
@@ -147,27 +162,29 @@ jobs:
                 \"ScriptLocation\": \"$SCRIPT_LOCATION\"
               }" \
               --default-arguments "{
-                \"--BRONZE_BUCKET\": \"${{ env.bronze_bucket_name }}\",
-                \"--SILVER_BUCKET\": \"${{ env.silver_bucket_name }}\",
+                \"--BRONZE_BUCKET\": \"$bronze_bucket_name\",
+                \"--SILVER_BUCKET\": \"$silver_bucket_name\",
                 \"--job-language\": \"python\",
-                \"--enable-metrics\": \"true\"
+                \"--enable-metrics\": \"true\",
+                \"--enable-continuous-cloudwatch-log\": \"false\",
+                \"--enable-job-insights\": \"false\"
               }" \
               --glue-version "4.0" \
-              --max-capacity 2
+              --number-of-workers 1 \
+              --worker-type "G.1X"
           fi
+        shell: bash
         env:
-          GLUE_ROLE_ARN: ${{ env.glue_role_arn }}
-          BRONZE_BUCKET: ${{ env.bronze_bucket_name }}
-          SILVER_BUCKET: ${{ env.silver_bucket_name }}
+          glue_role_arn: ${{ env.glue_role_arn }}
+          bronze_bucket_name: ${{ env.bronze_bucket_name }}
+          silver_bucket_name: ${{ env.silver_bucket_name }}
+          scripts_bucket_name: ${{ env.scripts_bucket_name }}
 
-      - name: Run Siler Layer ETLGlue Job
+      - name: Run Silver Layer ETL Glue Job
+        if: true
         run: |
           RUN_ID=$(aws glue start-job-run \
             --job-name silver-transform-job \
-            --arguments "{
-              \"--BRONZE_BUCKET\": \"${{ env.BRONZE_BUCKET }}\",
-              \"--SILVER_BUCKET\": \"${{ env.SILVER_BUCKET }}\"
-            }" \
             --query JobRunId --output text)
 
           echo "Started Glue job: $RUN_ID"

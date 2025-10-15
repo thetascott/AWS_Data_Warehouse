@@ -33,6 +33,14 @@ module "silver_bucket" {
   }
 }
 
+module "scripts_bucket" {
+  source      = "./modules/s3"
+  bucket_name = "srs-scripts-${random_id.suffix.hex}"
+  tags = {
+    "Project"     = var.project_name
+  }
+}
+
 module "iam" {
   source        = "./modules/iam"
   bronze_bucket = module.bronze_bucket.bucket_name
@@ -56,4 +64,21 @@ module "glue" {
       location_uri = "s3://${module.silver_bucket.bucket_name}/"
     }
   }
+}
+
+module "redshift" {
+  source = "./modules/redshift"
+
+  namespace_name     = "data_warehouse_ns"
+  workgroup_name     = "data_warehouse_wg"
+  db_name            = "datawarehouse"
+  admin_username     = "adminuser"
+  admin_password     = var.redshift_admin_password
+  iam_role_arn       = module.iam.redshift_role_arn
+  base_capacity      = 32
+  subnet_ids         = module.vpc.private_subnet_ids
+
+  vpc_id = module.vpc.vpc_id
+  project_name = var.project_name
+
 }

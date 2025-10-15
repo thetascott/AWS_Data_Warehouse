@@ -145,11 +145,6 @@ def process_crm_sales_details():
 def process_erp_cust_az12():
     df = spark.read.option("header", True).csv(bronze_bucket + "erp/CUST_AZ12.csv")
 
-    #rename columns
-    df = df.withColumnRenamed("col0", "cid") \
-       .withColumnRenamed("col1", "bdate") \
-       .withColumnRenamed("col2", "gen")
-
     # Transformations
     df_clean = (
         df
@@ -181,10 +176,6 @@ def process_erp_cust_az12():
 def process_erp_loc_a101():
     df = spark.read.option("header", True).csv(bronze_bucket + "erp/LOC_A101.csv")
 
-    #rename columns
-    df = df.withColumnRenamed("col0", "cid") \
-       .withColumnRenamed("col1", "cntry") 
-
     # Transformations
     df_clean = (
         df
@@ -207,12 +198,6 @@ def process_erp_loc_a101():
 
 def process_erp_px_cat_g1v2():
     df = spark.read.option("header", True).csv(bronze_bucket + "erp/PX_CAT_G1V2.csv")
-
-    #rename columns
-    df = df.withColumnRenamed("col0", "id") \
-       .withColumnRenamed("col1", "cat") \
-       .withColumnRenamed("col2", "subcat") \
-       .withColumnRenamed("col3", "maintenance") 
 
     # Select relevant columns
     df_clean = (

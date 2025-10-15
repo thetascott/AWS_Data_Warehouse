@@ -17,3 +17,7 @@ output "bronze_bucket_name" {
 output "silver_bucket_name" {
   value = module.silver_bucket.bucket_name
 }
+
+output "scripts_bucket_name" {
+  value = module.scripts_bucket.bucket_name
+}

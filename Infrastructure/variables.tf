@@ -33,3 +33,9 @@ variable "private_subnets" {
     "private-subnet-2" = { cidr = "10.0.102.0/24", az = "us-east-2b" }
   }
 }
+
+variable "redshift_admin_password" {
+  description = "Admin password for Redshift Serverless"
+  type        = string
+  sensitive   = true
+}

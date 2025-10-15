@@ -47,15 +47,20 @@ jobs:
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
+        env:
+          TF_VAR_redshift_password: ${{ secrets.AWS_REDSHIFT_PASSWORD }}
         run: terraform apply -auto-approve tfplan
 
-      # Extract the Bronze bucket name from Terraform outputs
+      # Extract the bucket names from Terraform outputs
       - name: Get Bronze bucket name
         id: get_bronze_bucket
         run: |
           BRONZE_BUCKET=$(terraform output -raw bronze_bucket_name)
           echo "bronze_bucket_name=$BRONZE_BUCKET" >> $GITHUB_ENV
           echo "Bronze bucket: $BRONZE_BUCKET"
+          SCRIPTS_BUCKET=$(terraform output -raw scripts_bucket_name)
+          echo "scripts_bucket_name=$SCRIPTS_BUCKET" >> $GITHUB_ENV
+          echo "Scripts bucket: $SCRIPTS_BUCKET"
 
       # Upload CSV files to S3 Bronze layer
       - name: Upload datasets to S3 Bronze layer

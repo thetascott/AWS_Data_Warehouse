@@ -5,3 +5,7 @@ variable "bronze_bucket" {
 variable "silver_bucket" {
   type = string
 }
+
+variable "scripts_bucket" {
+  type = string
+}

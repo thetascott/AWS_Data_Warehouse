@@ -1,6 +1,7 @@
 locals {
   bronze_arn = "arn:aws:s3:::${var.bronze_bucket}"
   silver_arn = "arn:aws:s3:::${var.silver_bucket}"
+  scripts_arn = "arn:aws:s3:::${var.scripts_bucket}"
 }
 
 ##############################
@@ -41,6 +42,14 @@ data "aws_iam_policy_document" "glue_s3" {
     "s3:PutObject"
     ]
     resources = [local.silver_arn, "${local.silver_arn}/*"]
+  }
+
+  statement {
+    actions = [
+    "s3:ListBucket",
+    "s3:GetObject"
+    ]
+    resources = [local.scripts_arn, "${local.scripts_arn}/*"]
   }
 
   statement {

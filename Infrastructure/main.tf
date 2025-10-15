@@ -45,6 +45,7 @@ module "iam" {
   source        = "./modules/iam"
   bronze_bucket = module.bronze_bucket.bucket_name
   silver_bucket = module.silver_bucket.bucket_name
+  scripts_bucket = module.scripts_bucket.bucket_name
 }
 
 module "glue" {

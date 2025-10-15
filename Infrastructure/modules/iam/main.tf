@@ -35,8 +35,12 @@ data "aws_iam_policy_document" "glue_s3" {
   }
 
   statement {
-    actions   = ["s3:PutObject"]
-    resources = ["${local.silver_arn}/*"]
+    actions = [
+    "s3:ListBucket",
+    "s3:GetObject",
+    "s3:PutObject"
+    ]
+    resources = [local.silver_arn, "${local.silver_arn}/*"]
   }
 
   statement {

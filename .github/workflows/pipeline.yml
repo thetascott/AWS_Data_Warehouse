@@ -112,7 +112,7 @@ jobs:
           echo "Glue ARN: $GLUE_ROLE_ARN"
 
           JOB_NAME="silver-transform-job"
-          SCRIPT_LOCATION="s3://${{ env.silver_bucket_name }}/Silver/silver_transform.py"
+          SCRIPT_LOCATION="s3://${{ env.scripts_bucket_name }}/Silver/silver_transform.py"
           ROLE_ARN="$GLUE_ROLE_ARN"
 
           # Check if job exists

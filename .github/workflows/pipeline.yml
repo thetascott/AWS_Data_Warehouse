@@ -173,7 +173,6 @@ jobs:
               --number-of-workers 1 \
               --worker-type "G.1X"
           fi
-        shell: bash
         env:
           glue_role_arn: ${{ env.glue_role_arn }}
           bronze_bucket_name: ${{ env.bronze_bucket_name }}

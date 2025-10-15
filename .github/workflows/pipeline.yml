@@ -113,7 +113,7 @@ jobs:
 
           JOB_NAME="silver-transform-job"
           SCRIPT_LOCATION="s3://${{ env.silver_bucket_name }}/Silver/silver_transform.py"
-          ROLE_ARN="${{ env.glue_role_arn }}"
+          ROLE_ARN="$GLUE_ROLE_ARN"
 
           # Check if job exists
           if aws glue get-job --job-name "$JOB_NAME" >/dev/null 2>&1; then

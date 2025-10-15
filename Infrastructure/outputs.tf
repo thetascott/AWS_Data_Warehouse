@@ -21,3 +21,7 @@ output "silver_bucket_name" {
 output "scripts_bucket_name" {
   value = module.scripts_bucket.bucket_name
 }
+
+output "glue_role_arn" {
+  value = module.iam.glue_role_arn
+}

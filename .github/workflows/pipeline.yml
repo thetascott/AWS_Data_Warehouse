@@ -54,12 +54,17 @@ jobs:
         run: terraform apply -auto-approve tfplan
 
       # Extract the bucket names from Terraform outputs
-      - name: Get Bronze bucket name
-        id: get_bronze_bucket
+      - name: Get bucket names
+        id: get_bucket_names
         run: |
           BRONZE_BUCKET=$(terraform output -raw bronze_bucket_name)
           echo "bronze_bucket_name=$BRONZE_BUCKET" >> $GITHUB_ENV
           echo "Bronze bucket: $BRONZE_BUCKET"
+
+          SILVER_BUCKET=$(terraform output -raw silver_bucket_name)
+          echo "silver_bucket_name=$SILVER_BUCKET" >> $GITHUB_ENV
+          echo "Silver bucket: $SILVER_BUCKET"
+
           SCRIPTS_BUCKET=$(terraform output -raw scripts_bucket_name)
           echo "scripts_bucket_name=$SCRIPTS_BUCKET" >> $GITHUB_ENV
           echo "Scripts bucket: $SCRIPTS_BUCKET"
@@ -99,6 +104,87 @@ jobs:
         env:
           BRONZE_BUCKET: ${{ env.bronze_bucket_name }}
         run: python ../Scripts/Bronze/load_bronze_catalog.py
+
+      - name: Create or Update Silver Layer ETL Glue Job
+        run: |
+          GLUE_ROLE_ARN=$(terraform output -raw glue_role_arn)
+          echo "glue_role_arn=$GLUE_ROLE_ARN" >> $GITHUB_ENV
+          echo "Glue ARN: $GLUE_ROLE_ARN"
+
+          JOB_NAME="silver-transform-job"
+          SCRIPT_LOCATION="s3://${{ env.silver_bucket_name }}/Silver/silver_transform.py"
+          ROLE_ARN="${{ env.glue_role_arn }}"
+
+          # Check if job exists
+          if aws glue get-job --job-name "$JOB_NAME" >/dev/null 2>&1; then
+            echo "Updating existing Glue job: $JOB_NAME"
+            aws glue update-job \
+              --job-name "$JOB_NAME" \
+              --job-update "{
+                \"Role\": \"$ROLE_ARN\",
+                \"Command\": {
+                  \"Name\": \"glueetl\",
+                  \"PythonVersion\": \"3\",
+                  \"ScriptLocation\": \"$SCRIPT_LOCATION\"
+                },
+                \"DefaultArguments\": {
+                  \"--BRONZE_BUCKET\": \"${{ env.bronze_bucket_name }}\",
+                  \"--SILVER_BUCKET\": \"${{ env.silver_bucket_name }}\",
+                  \"--job-language\": \"python\",
+                  \"--enable-metrics\": \"true\"
+                },
+                \"GlueVersion\": \"4.0\",
+                \"MaxCapacity\": 2
+              }"
+          else
+            echo "Creating new Glue job: $JOB_NAME"
+            aws glue create-job \
+              --name "$JOB_NAME" \
+              --role "$ROLE_ARN" \
+              --command "{
+                \"Name\": \"glueetl\",
+                \"PythonVersion\": \"3\",
+                \"ScriptLocation\": \"$SCRIPT_LOCATION\"
+              }" \
+              --default-arguments "{
+                \"--BRONZE_BUCKET\": \"${{ env.bronze_bucket_name }}\",
+                \"--SILVER_BUCKET\": \"${{ env.silver_bucket_name }}\",
+                \"--job-language\": \"python\",
+                \"--enable-metrics\": \"true\"
+              }" \
+              --glue-version "4.0" \
+              --max-capacity 2
+          fi
+        env:
+          GLUE_ROLE_ARN: ${{ env.glue_role_arn }}
+          BRONZE_BUCKET: ${{ env.bronze_bucket_name }}
+          SILVER_BUCKET: ${{ env.silver_bucket_name }}
+
+      - name: Run Siler Layer ETLGlue Job
+        run: |
+          RUN_ID=$(aws glue start-job-run \
+            --job-name silver-transform-job \
+            --arguments "{
+              \"--BRONZE_BUCKET\": \"${{ env.BRONZE_BUCKET }}\",
+              \"--SILVER_BUCKET\": \"${{ env.SILVER_BUCKET }}\"
+            }" \
+            --query JobRunId --output text)
+
+          echo "Started Glue job: $RUN_ID"
+
+          # Wait for completion
+          while true; do
+            STATUS=$(aws glue get-job-run --job-name silver-transform-job --run-id "$RUN_ID" --query 'JobRun.JobRunState' --output text)
+            echo "Status: $STATUS"
+            if [ "$STATUS" = "SUCCEEDED" ]; then
+              echo "Glue job succeeded"
+              break
+            elif [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "STOPPED" ]; then
+              echo "Glue job failed"
+              exit 1
+            fi
+            sleep 30
+          done
 
       # Terraform Destroy (manual trigger only)
       - name: Terraform Destroy

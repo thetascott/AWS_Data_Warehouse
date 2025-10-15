@@ -43,6 +43,8 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
+        env:
+          TF_VAR_redshift_password: ${{ secrets.AWS_REDSHIFT_PASSWORD }}
         run: terraform plan -out=tfplan
 
       - name: Terraform Apply

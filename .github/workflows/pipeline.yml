@@ -76,7 +76,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           echo "Uploading script files to s3://${{ env.scripts_bucket_name }}/"
-          aws s3 cp ../Scripts s3://${{ env.scripts_bucket_name }}/ --recursive --exclude "*" --include "*.csv"
+          aws s3 cp ../Scripts s3://${{ env.scripts_bucket_name }}/ --recursive 
 
       - name: Set up Python
         uses: actions/setup-python@v5

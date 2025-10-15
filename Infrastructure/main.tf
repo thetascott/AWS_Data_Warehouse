@@ -69,8 +69,8 @@ module "glue" {
 module "redshift" {
   source = "./modules/redshift"
 
-  namespace_name     = "data_warehouse_ns"
-  workgroup_name     = "data_warehouse_wg"
+  namespace_name     = "data-warehouse-ns"
+  workgroup_name     = "data-warehouse-wg"
   db_name            = "datawarehouse"
   admin_username     = "adminuser"
   admin_password     = var.redshift_admin_password

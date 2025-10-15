@@ -2,7 +2,7 @@ import sys
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from pyspark.sql.functions import col, trim, when, upper, window, row_number, current_date, substring, coalesce, to_date, lead, length, abs_col, lit, regexp_replace
+from pyspark.sql.functions import col, trim, when, upper, window, row_number, current_date, substring, coalesce, to_date, lead, length, abs, lit, regexp_replace
 from pyspark.sql.types import DateType
 from awsglue.utils import getResolvedOptions
 
@@ -123,8 +123,8 @@ def process_crm_sales_details():
             when(
                 (col("sls_sales").isNull()) |
                 (col("sls_sales") <= 0) |
-                (col("sls_sales") != col("sls_quantity") * abs_col(col("sls_price"))),
-                col("sls_quantity") * abs_col(col("sls_price"))
+                (col("sls_sales") != col("sls_quantity") * abs(col("sls_price"))),
+                col("sls_quantity") * abs(col("sls_price"))
             ).otherwise(col("sls_sales"))
         )
         # Derive price if missing or invalid

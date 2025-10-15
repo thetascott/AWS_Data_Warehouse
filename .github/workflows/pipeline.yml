@@ -71,6 +71,13 @@ jobs:
           echo "Uploading CSV files to s3://${{ env.bronze_bucket_name }}/"
           aws s3 cp ../Datasets s3://${{ env.bronze_bucket_name }}/ --recursive --exclude "*" --include "*.csv"
 
+      # Upload scripts files to S3 scripts bucket
+      - name: Upload scripts to S3 scripts bucket
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Uploading script files to s3://${{ env.scripts_bucket_name }}/"
+          aws s3 cp ../Scripts s3://${{ env.scripts_bucket_name }}/ --recursive --exclude "*" --include "*.csv"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

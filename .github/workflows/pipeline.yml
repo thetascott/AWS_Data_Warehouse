@@ -132,8 +132,8 @@ jobs:
                   \"--enable-continuous-cloudwatch-log\": \"false\",
                   \"--enable-job-insights\": \"false\"
                 },
-                \"GlueVersion\": \"5.0.4\",
-                \"NumberOfWorkers\": 1,
+                \"GlueVersion\": \"5.0\",
+                \"NumberOfWorkers\": 2,
                 \"WorkerType\": \"G.1X\"
               }"
           else
@@ -154,7 +154,7 @@ jobs:
                 \"--enable-continuous-cloudwatch-log\": \"false\",
                 \"--enable-job-insights\": \"false\"
               }" \
-              --glue-version "4.0" \
+              --glue-version "5.0" \
               --number-of-workers 2 \
               --worker-type "G.1X"
           fi

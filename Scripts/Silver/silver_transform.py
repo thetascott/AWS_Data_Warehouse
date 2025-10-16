@@ -2,7 +2,8 @@ import sys
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from pyspark.sql.functions import col, trim, when, upper, window, row_number, current_date, substring, coalesce, to_date, lead, length, abs, lit, regexp_replace
+from pyspark.sql.functions import col, trim, when, upper, row_number, current_date, substring, coalesce, to_date, lead, length, abs, lit, regexp_replace,expr
+from pyspark.sql import Window
 from pyspark.sql.types import DateType
 from awsglue.utils import getResolvedOptions
 
@@ -13,8 +14,8 @@ job = Job(glueContext)
 
 # Buckets
 args = getResolvedOptions(sys.argv, ["BRONZE_BUCKET", "SILVER_BUCKET"])
-bronze_bucket = args["BRONZE_BUCKET"]
-silver_bucket = args["SILVER_BUCKET"]
+bronze_bucket = "s3://" + args['BRONZE_BUCKET'].rstrip('/') + "/"
+silver_bucket = "s3://" + args['SILVER_BUCKET'].rstrip('/') + "/"
 
 def process_crm_cust_info():
     df = spark.read.option("header", True).csv(bronze_bucket + "crm/cust_info.csv")
@@ -42,7 +43,7 @@ def process_crm_cust_info():
     df_filtered = df_clean.filter(col("cst_id").isNotNull())
 
     # Deduplicate: keep the latest record per customer based on cst_create_date
-    window_spec = window.partitionBy("cst_id").orderBy(col("cst_create_date").desc())
+    window_spec = Window.partitionBy("cst_id").orderBy(col("cst_create_date").desc())
     df_final = df_filtered.withColumn("flag_last", row_number().over(window_spec)) \
                           .filter(col("flag_last") == 1) \
                           .drop("flag_last")
@@ -58,8 +59,8 @@ def process_crm_prd_info():
      # Transformations
     df_clean = (
         df.withColumn("cat_id", substring(col("prd_key"), 1, 5)) 
-          .withColumn("cat_id", col("cat_id").replace("-", "_"))  # replace '-' with '_'
-          .withColumn("prd_key", substring(col("prd_key"), 7, length(col("prd_key")) - 6))  # adjust length as needed
+          .withColumn("cat_id", regexp_replace(col("cat_id"), "-", "_"))  # replace '-' with '_'
+          .withColumn("prd_key", substring(col("prd_key"), 7, 100))  # adjust length as needed
           .withColumn("prd_nm", trim(col("prd_nm")))
           .withColumn("prd_cost", coalesce(col("prd_cost"), lit(0)))
           .withColumn(
@@ -75,7 +76,7 @@ def process_crm_prd_info():
     )
 
     # Window to calculate prd_end_dt
-    window_spec = window.partitionBy("prd_key").orderBy("prd_start_dt")
+    window_spec = Window.partitionBy("prd_key").orderBy("prd_start_dt")
     df_final = df_clean.withColumn(
         "prd_end_dt",
         lead("prd_start_dt").over(window_spec)  # next start date
@@ -151,7 +152,7 @@ def process_erp_cust_az12():
         # Remove 'NAS' prefix from cid
         .withColumn(
             "cid",
-            when(col("cid").startswith("NAS"), substring(col("cid"), 4, length(col("cid")) - 3))
+            when(col("cid").startswith("NAS"), substring(col("cid"), 4, 100))
             .otherwise(col("cid"))
         )
         # Set future birthdates to NULL

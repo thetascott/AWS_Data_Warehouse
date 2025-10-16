@@ -22,17 +22,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        if: false
         uses: actions/checkout@v4
 
       - name: Set up Terraform
-        if: false
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Configure AWS credentials
-        if: false
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -40,28 +37,23 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Initialize Terraform
-        if: false
         run: terraform init
 
       - name: Validate Terraform
-        if: false
         run: terraform validate
 
       - name: Terraform Plan
-        if: false
         env:
           TF_VAR_redshift_admin_password: ${{ secrets.AWS_REDSHIFT_PASSWORD }}
         run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: false
         env:
           TF_VAR_redshift_admin_password: ${{ secrets.AWS_REDSHIFT_PASSWORD }}
         run: terraform apply -auto-approve tfplan
 
       # Extract the bucket names from Terraform outputs
       - name: Get bucket names
-        if: false
         id: get_bucket_names
         run: |
           BRONZE_BUCKET=$(terraform output -raw bronze_bucket_name)
@@ -78,26 +70,22 @@ jobs:
 
       # Upload CSV files to S3 Bronze layer
       - name: Upload datasets to S3 Bronze layer
-        if: false
         run: |
           echo "Uploading CSV files to s3://${{ env.bronze_bucket_name }}/"
           aws s3 cp ../Datasets s3://${{ env.bronze_bucket_name }}/ --recursive --exclude "*" --include "*.csv"
 
       # Upload scripts files to S3 scripts bucket
       - name: Upload scripts to S3 scripts bucket
-        if: false
         run: |
           echo "Uploading script files to s3://${{ env.scripts_bucket_name }}/"
           aws s3 cp ../Scripts s3://${{ env.scripts_bucket_name }}/ --recursive 
 
       - name: Set up Python
-        if: false
         uses: actions/setup-python@v5
         with:
           python-version: '3.13.7'
 
       - name: Cache pip dependencies
-        if: false
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -106,18 +94,15 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Install pip dependencies
-        if: false
         run: |
           pip install -r ../Scripts/requirements.txt
 
       - name: Run script
-        if: false
         env:
           BRONZE_BUCKET: ${{ env.bronze_bucket_name }}
         run: python ../Scripts/Bronze/load_bronze_catalog.py
 
       - name: Create or Update Silver Layer ETL Glue Job
-        if: true
         run: |
           GLUE_ROLE_ARN=$(terraform output -raw glue_role_arn)
           echo "glue_role_arn=$GLUE_ROLE_ARN" >> $GITHUB_ENV
@@ -147,7 +132,7 @@ jobs:
                   \"--enable-continuous-cloudwatch-log\": \"false\",
                   \"--enable-job-insights\": \"false\"
                 },
-                \"GlueVersion\": \"4.0\",
+                \"GlueVersion\": \"5.0.4\",
                 \"NumberOfWorkers\": 1,
                 \"WorkerType\": \"G.1X\"
               }"
@@ -170,7 +155,7 @@ jobs:
                 \"--enable-job-insights\": \"false\"
               }" \
               --glue-version "4.0" \
-              --number-of-workers 1 \
+              --number-of-workers 2 \
               --worker-type "G.1X"
           fi
         env:
@@ -180,7 +165,6 @@ jobs:
           scripts_bucket_name: ${{ env.scripts_bucket_name }}
 
       - name: Run Silver Layer ETL Glue Job
-        if: true
         run: |
           RUN_ID=$(aws glue start-job-run \
             --job-name silver-transform-job \

@@ -36,7 +36,7 @@ def process_crm_cust_info():
               .when(upper(trim(col("cst_gndr"))) == "M", "Male")
               .otherwise("n/a")
           )
-          .withColumn("cst_create_date", current_date())  # Add current date column
+          .withColumn("dwh_create_date", current_date())  # Add current date column
     )
 
     # Remove null customer IDs
@@ -72,7 +72,7 @@ def process_crm_prd_info():
               .otherwise("n/a")
           )
           .withColumn("prd_start_dt", to_date(col("prd_start_dt"), "yyyy-MM-dd"))
-          .withColumn("prd_create_date", current_date())  # Add create date
+          .withColumn("dwh_create_date", current_date())  # Add create date
     )
 
     # Window to calculate prd_end_dt
@@ -136,6 +136,7 @@ def process_crm_sales_details():
                 col("sls_sales") / when(col("sls_quantity") == 0, lit(None)).otherwise(col("sls_quantity"))
             ).otherwise(col("sls_price"))
         )
+        .withColumn("dwh_create_date", current_date())  # Add create date
     )
 
     # Save as Parquet
@@ -166,6 +167,7 @@ def process_erp_cust_az12():
             when(upper(trim(col("gen"))).isin("F", "FEMALE"), "Female")
             .when(upper(trim(col("gen"))).isin("M", "MALE"), "Male")
             .otherwise("n/a")
+        .withColumn("dwh_create_date", current_date())  # Add create date
         )
     )
 
@@ -189,6 +191,7 @@ def process_erp_loc_a101():
             .when(trim(col("cntry")).isin("US", "USA"), "United States")
             .when((trim(col("cntry")) == "") | (col("cntry").isNull()), "n/a")
             .otherwise(trim(col("cntry")))
+        .withColumn("dwh_create_date", current_date())  # Add create date
         )
     )
 
@@ -204,7 +207,7 @@ def process_erp_px_cat_g1v2():
     df_clean = (
         df.select("id", "cat", "subcat", "maintenance")
         # Add load date for silver layer consistency
-        .withColumn("px_create_date", current_date())
+        .withColumn("dwh_create_date", current_date())  # Add create date
     )
 
     # Save as Parquet to silver layer

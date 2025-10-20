@@ -112,22 +112,37 @@ data "aws_iam_policy_document" "redshift_assume_role" {
   }
 }
 
-resource "aws_iam_policy" "redshift_s3_policy" {
-  name        = "redshift-s3-access"
-  description = "Allow Redshift to read silver"
-  policy      = data.aws_iam_policy_document.redshift_s3.json
+resource "aws_iam_policy" "redshift_serverless_policy" {
+  name        = "redshift-serverless-access"
+  description = "Allow Redshift serverless access"
+  policy      = data.aws_iam_policy_document.redshift_serverless.json
 }
 
-data "aws_iam_policy_document" "redshift_s3" {
+data "aws_iam_policy_document" "redshift_serverless" {
   statement {
-    actions   = ["s3:GetObject", "s3:ListBucket"]
+    actions   = [
+      "s3:GetObject",
+      "s3:ListBucket"
+    ]
     resources = [local.silver_arn, "${local.silver_arn}/*"]
+  }
+
+  statement {
+    actions = [
+      "glue:GetDatabase",
+      "glue:GetDatabases",
+      "glue:GetTable",
+      "glue:GetTables",
+      "glue:GetPartition",
+      "glue:GetPartitions"
+    ]
+    resources = ["*"]
   }
 }
 
 resource "aws_iam_role_policy_attachment" "redshift_s3_attach" {
   role       = aws_iam_role.redshift.name
-  policy_arn = aws_iam_policy.redshift_s3_policy.arn
+  policy_arn = aws_iam_policy.redshift_serverless_policy.arn
 }
 
 ##############################

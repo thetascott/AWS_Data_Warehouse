@@ -97,12 +97,13 @@ jobs:
         run: |
           pip install -r ../Scripts/requirements.txt
 
-      - name: Run script
+      - name: Populate bronze layer AWS Glue catalog
         env:
           BRONZE_BUCKET: ${{ env.bronze_bucket_name }}
         run: python ../Scripts/Bronze/load_bronze_catalog.py
 
       - name: Create or Update Silver Layer ETL Glue Job
+        if: false
         run: |
           GLUE_ROLE_ARN=$(terraform output -raw glue_role_arn)
           echo "glue_role_arn=$GLUE_ROLE_ARN" >> $GITHUB_ENV
@@ -165,6 +166,7 @@ jobs:
           scripts_bucket_name: ${{ env.scripts_bucket_name }}
 
       - name: Run Silver Layer ETL Glue Job
+        if: false
         run: |
           RUN_ID=$(aws glue start-job-run \
             --job-name silver-transform-job \
@@ -185,6 +187,11 @@ jobs:
             fi
             sleep 30
           done
+
+      - name: Populate silver layer AWS Glue catalog
+        env:
+          SILVER_BUCKET: ${{ env.silver_bucket_name }}
+        run: python ../Scripts/Silver/load_silver_catalog.py
 
       # Terraform Destroy (manual trigger only)
       - name: Terraform Destroy

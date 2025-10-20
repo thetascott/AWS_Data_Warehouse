@@ -1,4 +1,4 @@
-# AWS Data Warehouse Project (In-Progress)
+# AWS Data Warehouse Project
 
 Welcome to the **AWS Data Warehouse Project** repository! 
 This project demonstrates a comprehensive data warehousing solution.  Designed as a portfolio project, it highlights industry best practices in data engineering and analytics.
@@ -10,7 +10,7 @@ This project demonstrates a comprehensive data warehousing solution.  Designed a
 The data architecture for this project follows Medallion Architecture **Bronze**, **Silver**, and **Gold** layers:
 ![Data Architecture](Docs/High%20Level%20Architecture.png)
 1. **Bronze Layer**: Stores raw data as-is from the source systems. Data is ingested from CSV Files into a S3 bucket.
-2. **Silver Layer**: This layer includes data cleansing, standardization, and normalization processes to prepare data for analysis.
+2. **Silver Layer**: This layer includes data cleansing, standardization, and normalization processes to prepare data for analysis. Transformations are performed using PySpark, and the resulting tables are stored in Parquet format for optimized performance.
 3. **Gold Layer**: Houses business-ready data modeled into a star schema required for reporting and analytics.
 
 ---
@@ -22,6 +22,8 @@ This project involves:
 1. **Data Architecture**: Designing a Modern Data Warehouse Using Medallion Architecture **Bronze**, **Silver**, and **Gold** layers.
 2. **ETL Pipelines**: Extracting, transforming, and loading data from source systems into the warehouse.
 3. **Data Modeling**: Developing fact and dimension tables optimized for analytical queries.
+4. **Infrastructure as Code (IaC)**: Managed AWS infrastructure using Terraform to ensure consistent, repeatable environment setup and configuration.
+5. **CI/CD Automation**: Built a GitHub Actions pipeline to automate the entire process - from data ingestion to generation of the Gold Layer.
 
 ---
 
@@ -45,22 +47,23 @@ Develop a modern data warehouse using AWS services to consolidate sales data, en
 ```
 aws-data-warehouse/
 │
-├── datasets/                           # Raw datasets used for the project (ERP and CRM data)
+├── Datasets/                           # Raw datasets used for the project (ERP and CRM data)
 │
-├── docs/                               # Project documentation and architecture details
+├── Docs/                               # Project documentation and architecture details
 │   ├── High Level Architecture.png     # Project's architecture
 │   ├── data_catalog.md                 # Catalog of datasets, including field descriptions and metadata
 │   ├── Data Flow.png                   # Data flow diagram
 │   ├── Data Model.png                  # Data model (star schema)
 │   ├── Data Integration.png            # Data Integration (table relationships)
 │   ├── naming-conventions.md           # Consistent naming guidelines for tables, columns, and files
+├── Infrastructure/                     # Terraform configurations for managing AWS infrastructure components.
 │
-├── scripts/                            # SQL scripts for ETL and transformations
+├── Scripts/                            # SQL scripts for ETL and transformations
 │   ├── bronze/                         # Scripts for extracting and loading raw data
 │   ├── silver/                         # Scripts for cleaning and transforming data
 │   ├── gold/                           # Scripts for creating analytical models
 │
-├── tests/                              # Test scripts and quality files
+├── Tests/                              # Test scripts and quality files
 │
 ├── README.md                           # Project overview and instructions
 ├── LICENSE                             # License information for the repository

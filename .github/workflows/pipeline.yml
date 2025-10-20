@@ -192,6 +192,16 @@ jobs:
         env:
           SILVER_BUCKET: ${{ env.silver_bucket_name }}
         run: python ../Scripts/Silver/load_silver_catalog.py
+      
+      - name: Create Gold Layer Views
+        run: |
+          REDSHIFT_ROLE_ARN=$(terraform output -raw redshift_role_arn)
+          export redshift_role_arn=$REDSHIFT_ROLE_ARN
+          echo "Redshift ARN: $REDSHIFT_ROLE_ARN"
+
+          python ../Scripts/Gold/gold_transform.py
+        env:
+          S3_SCRIPTS_BUCKET: ${{ env.scripts_bucket_name }}
 
       # Terraform Destroy (manual trigger only)
       - name: Terraform Destroy

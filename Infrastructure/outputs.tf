@@ -25,3 +25,7 @@ output "scripts_bucket_name" {
 output "glue_role_arn" {
   value = module.iam.glue_role_arn
 }
+
+output "redshift_role_arn" {
+  value = module.iam.redshift_role_arn
+}

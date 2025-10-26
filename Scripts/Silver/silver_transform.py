@@ -167,8 +167,8 @@ def process_erp_cust_az12():
             when(upper(trim(col("gen"))).isin("F", "FEMALE"), "Female")
             .when(upper(trim(col("gen"))).isin("M", "MALE"), "Male")
             .otherwise("n/a")
-        .withColumn("dwh_create_date", current_date())  # Add create date
         )
+        .withColumn("dwh_create_date", current_date())  # Add create date
     )
 
     # Save as Parquet to silver layer
@@ -191,7 +191,6 @@ def process_erp_loc_a101():
             .when(trim(col("cntry")).isin("US", "USA"), "United States")
             .when((trim(col("cntry")) == "") | (col("cntry").isNull()), "n/a")
             .otherwise(trim(col("cntry")))
-        .withColumn("dwh_create_date", current_date())  # Add create date
         )
     )
 

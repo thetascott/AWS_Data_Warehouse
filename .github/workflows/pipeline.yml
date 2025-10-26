@@ -103,7 +103,6 @@ jobs:
         run: python ../Scripts/Bronze/load_bronze_catalog.py
 
       - name: Create or Update Silver Layer ETL Glue Job
-        if: false
         run: |
           GLUE_ROLE_ARN=$(terraform output -raw glue_role_arn)
           echo "glue_role_arn=$GLUE_ROLE_ARN" >> $GITHUB_ENV
@@ -166,7 +165,6 @@ jobs:
           scripts_bucket_name: ${{ env.scripts_bucket_name }}
 
       - name: Run Silver Layer ETL Glue Job
-        if: false
         run: |
           RUN_ID=$(aws glue start-job-run \
             --job-name silver-transform-job \
